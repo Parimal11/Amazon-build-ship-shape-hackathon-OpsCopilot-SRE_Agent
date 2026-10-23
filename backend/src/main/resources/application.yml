@@ -23,5 +23,5 @@ server:
 
 opspilot:
   prometheus:
-    base-url: http://localhost:9091
+    base-url: ${OPSPILOT_PROMETHEUS_BASE_URL:http://localhost:9091}
 
