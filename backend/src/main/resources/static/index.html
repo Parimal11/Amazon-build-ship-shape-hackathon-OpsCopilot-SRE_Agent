@@ -1,0 +1,756 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpsPilot | Agentic Incident Command</title>
+<style>
+:root {
+  color-scheme: dark;
+  --bg:#090e17; --panel:#111a28; --panel2:#172337;
+  --line:#293950; --text:#edf4ff; --muted:#96a8c0;
+  --blue:#80aaff; --green:#53ddb0; --amber:#ffcf7c;
+  --red:#ff8995;
+}
+* { box-sizing:border-box }
+body {
+  margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;
+}
+button,input,select {font:inherit}
+button {
+  background:#1b2b41;border:1px solid var(--line);
+  color:var(--text);padding:10px 13px;border-radius:9px;
+  cursor:pointer;font-weight:650;
+}
+button:hover {border-color:var(--blue)}
+button:disabled {opacity:.55;cursor:wait}
+.primary {background:#285fc7;border-color:#477fea}
+.success {background:#124d3b;border-color:#24785c}
+.danger {background:#4b202a;border-color:#8c3e4b}
+input,select {
+  background:#0c1521;color:var(--text);
+  border:1px solid var(--line);border-radius:9px;
+  padding:11px;width:100%;
+}
+.shell {max-width:1450px;margin:auto;padding:25px}
+header {
+  display:flex;justify-content:space-between;align-items:center;
+  gap:15px;flex-wrap:wrap;margin-bottom:22px;
+}
+.brand {display:flex;align-items:center;gap:13px}
+.logo {
+  display:grid;place-items:center;width:45px;height:45px;
+  border-radius:14px;background:linear-gradient(135deg,#438eff,#8367fa);
+  font-size:23px;font-weight:800;
+}
+h1 {font-size:23px;margin:0}
+h2 {font-size:16px;margin:0}
+h3 {font-size:13px;margin:15px 0 8px}
+p {margin:8px 0}
+.muted {color:var(--muted)}
+.eyebrow {
+  color:var(--blue);font-size:10px;font-weight:800;
+  letter-spacing:.15em;text-transform:uppercase;
+}
+.status {
+  border:1px solid #285c4a;color:var(--green);
+  border-radius:30px;padding:7px 11px;font-size:12px;
+}
+.stats {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:13px;margin-bottom:17px;
+}
+.stat,.panel {
+  background:linear-gradient(145deg,#121d2c,#0e1623);
+  border:1px solid var(--line);border-radius:14px;
+}
+.stat {padding:17px}
+.stat .label {color:var(--muted);font-size:12px}
+.stat .number {font-size:29px;font-weight:800;margin-top:5px}
+.layout {
+  display:grid;grid-template-columns:minmax(280px,.85fr) minmax(0,1.55fr);
+  gap:16px;align-items:start;
+}
+.panel {padding:18px;margin-bottom:16px;min-width:0}
+.panelhead {
+  display:flex;justify-content:space-between;align-items:center;
+  gap:10px;margin-bottom:13px;flex-wrap:wrap;
+}
+.incident-list {display:flex;flex-direction:column;gap:8px}
+.incident {
+  display:block;text-align:left;width:100%;
+  background:#101a29;padding:12px;border-radius:10px;
+}
+.incident.selected {border-color:var(--blue);background:#1a2a42}
+.incident-title {
+  display:flex;justify-content:space-between;gap:8px;font-weight:750;
+}
+.incident-meta {color:var(--muted);font-size:12px;margin-top:5px}
+.pill {
+  display:inline-block;border-radius:20px;padding:3px 8px;
+  font-size:10px;font-weight:800;background:#26364a;
+}
+.critical,.high {color:var(--red);background:#4b252d}
+.medium {color:var(--amber);background:#45351d}
+.low,.healthy {color:var(--green);background:#173e34}
+.empty {
+  padding:24px 12px;text-align:center;color:var(--muted);
+  border:1px dashed var(--line);border-radius:10px;
+}
+.metrics {
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:9px;margin:16px 0;
+}
+.metric,.fact {background:#101a27;border:1px solid #223147;border-radius:9px;padding:11px;overflow-wrap:anywhere}
+.metric .label {color:var(--muted);font-size:11px}
+.metric .value {font-size:18px;font-weight:750;margin-top:4px}
+.section {border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.actions {display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.facts {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+pre {
+  white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.6 ui-monospace,monospace;
+  color:#c9dcf7;background:#0a121e;border:1px solid var(--line);
+  border-radius:9px;padding:12px;max-height:360px;overflow:auto;
+}
+.chat-panel {border-color:#354a6a}
+.chat-head {display:flex;gap:12px;align-items:center}
+.agent-icon {
+  display:grid;place-items:center;width:40px;height:40px;
+  border-radius:12px;background:#263c64;font-size:20px;
+}
+.chat-log {
+  display:flex;flex-direction:column;gap:12px;
+  max-height:410px;overflow-y:auto;margin:16px 0;padding:2px;
+}
+.message {
+  padding:12px 14px;border:1px solid var(--line);
+  border-radius:12px;white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.message.user {background:#1a2d4a;align-self:flex-end;max-width:90%}
+.message.assistant {background:#101a29;align-self:stretch}
+.message .who {
+  font-size:10px;color:var(--blue);font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;
+}
+.chat-form {display:flex;gap:9px}
+.chat-form input {flex:1;min-width:0}
+.prompts {display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+.prompts button {font-size:12px;padding:8px 10px}
+.approval {
+  background:#292419;border:1px solid #66512c;color:#ffe0a0;
+  padding:12px;border-radius:10px;margin-top:14px;font-size:12px;
+}
+.footer {
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  padding:8px 2px 20px;color:var(--muted);font-size:11px;
+}
+.toast {
+  position:fixed;right:20px;bottom:20px;max-width:420px;
+  padding:13px 16px;background:#14263a;border:1px solid #3a5a7a;
+  border-radius:10px;display:none;z-index:10;
+}
+@media(max-width:900px) {
+  .layout {grid-template-columns:1fr}
+  .stats {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:550px) {
+  .shell {padding:12px}
+  .metrics {grid-template-columns:repeat(2,minmax(0,1fr))}
+  .facts {grid-template-columns:1fr}
+  .chat-form {flex-direction:column}
+  .stat {padding:12px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div class="brand">
+      <div class="logo">O</div>
+      <div>
+        <div class="eyebrow">AI-assisted operations</div>
+        <h1>OpsPilot</h1>
+        <div class="muted">Observe · Investigate · Verify · Recover</div>
+      </div>
+    </div>
+    <div>
+      <span class="status" id="healthText">Connecting to backend…</span>
+      <button id="refreshBtn" style="margin-left:8px">Refresh</button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="label">Open incidents</div>
+      <div class="number" id="openCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">Critical / high</div>
+      <div class="number" id="highCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">Registered services</div>
+      <div class="number" id="serviceCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="label">AI investigations</div>
+      <div class="number" id="aiCount">0</div>
+    </div>
+  </section>
+
+  
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>PetClinic · Live monitored targets</h2>
+        <div class="muted">Source: Prometheus · Metric: up</div>
+      </div>
+      <button id="refreshTargetsBtn">Refresh targets</button>
+    </div>
+    <div id="targetsList" class="incident-list">
+      <div class="empty">Loading live Prometheus targets…</div>
+    </div>
+  </section>
+
+
+  <section class="panel chat-panel">
+    <div class="panelhead">
+      <div class="chat-head">
+        <div class="agent-icon">✦</div>
+        <div>
+          <h2>OpsPilot · Alexa+ Simulation</h2>
+          <div class="muted">Simulated conversational assistant · Live OpsPilot tools</div>
+        </div>
+      </div>
+      <span class="pill low">CONNECTED UI</span>
+    </div>
+    <p class="muted">
+      Talk to this simulated Alexa+ experience to check live service health, detect incidents, and request an AI-assisted investigation.
+      The agent displays the tools it invokes and their returned evidence.
+    </p>
+
+    <div class="chat-log" id="agentMessages" aria-live="polite">
+      <div class="message assistant">
+        <div class="who">OpsPilot</div>
+        Hi! I can query live Prometheus telemetry, detect incidents,
+        and investigate incidents using the evidence available to OpsPilot.
+        Try “Check service health” to get started.
+      </div>
+    </div>
+
+    <form class="chat-form" id="agentForm">
+      <input id="agentInput" maxlength="500" required
+             autocomplete="off"
+             placeholder="Try: Check service health…">
+      <button class="primary" id="agentSend" type="submit">Ask OpsPilot</button>
+    </form>
+    <div class="prompts">
+      <button type="button" data-agent-prompt="Check service health">Check health</button>
+      <button type="button" data-agent-prompt="Detect incidents">Detect incidents</button>
+      <button type="button" data-agent-prompt="List incidents">List incidents</button>
+      <button type="button" data-agent-prompt="Investigate the latest incident">Investigate latest</button>
+    </div>
+    <div class="approval">
+      <strong>Safety boundary:</strong>
+      diagnosis and recommendations are advisory. Recovery must be explicitly approved,
+      and successful recovery must be verified against live telemetry.
+    </div>
+  </section>
+
+  <div class="layout">
+    <div>
+      <section class="panel">
+        <div class="panelhead">
+          <h2>Incident queue</h2>
+          <span class="muted" id="incidentCount">0 items</span>
+        </div>
+        <div class="incident-list" id="incidentList">
+          <div class="empty">Loading incidents…</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panelhead"><h2>Controlled failure simulator</h2></div>
+        <p class="muted">Creates an incident in OpsPilot's demo service registry. This does not stop a real container.</p>
+        <div style="display:grid;gap:10px">
+          <div>
+            <label class="muted" for="serviceSelect">Service</label>
+            <select id="serviceSelect"></select>
+          </div>
+          <div>
+            <label class="muted" for="failureSelect">Failure type</label>
+            <select id="failureSelect">
+              <option value="SERVICE_DOWN">Service down</option>
+              <option value="HIGH_ERROR_RATE">High error rate</option>
+              <option value="DEPLOYMENT_REGRESSION">Deployment regression</option>
+            </select>
+          </div>
+          <button class="primary" id="simulateBtn">＋ Simulate failure</button>
+          <button id="detectBtn">Run real Prometheus detection</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="panelhead">
+        <h2>Incident investigation</h2>
+        <span class="muted" id="selectedLabel">Select an incident</span>
+      </div>
+      <div id="detail">
+        <div class="empty">Select an incident from the queue to inspect evidence and investigate it with Gemini.</div>
+      </div>
+    </section>
+  </div>
+
+  <div class="footer">
+    <span>OpsPilot · Agentic operations prototype</span>
+    <span>Recommendations are advisory. Review actions before execution.</span>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let incidents = [];
+let services = [];
+let selectedId = null;
+let investigations = {};
+let aiCount = 0;
+const $ = id => document.getElementById(id);
+
+const esc = value => String(value ?? '').replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function request(path, options = {}) {
+  const response = await fetch(API + path, {
+    headers: {'Content-Type':'application/json', ...(options.headers || {})},
+    ...options
+  });
+  const text = await response.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; }
+  catch { data = text; }
+  if (!response.ok) {
+    throw new Error((data && data.message) || (data && data.error) ||
+      `HTTP ${response.status}: ${typeof data === 'string' ? data.slice(0,180) : ''}`);
+  }
+  return data;
+}
+
+function toast(message, error = false) {
+  const el = $('toast');
+  el.textContent = message;
+  el.style.display = 'block';
+  el.style.borderColor = error ? '#8c3e4b' : '#3a5a7a';
+  clearTimeout(window.toastTimer);
+  window.toastTimer = setTimeout(() => el.style.display = 'none', 4500);
+}
+
+
+async function loadPrometheusTargets() {
+  const root = $('targetsList');
+  if (!root) return;
+
+  root.innerHTML = '<div class="empty">Querying Prometheus…</div>';
+
+  try {
+    const response = await request(
+      '/api/telemetry/query?expression=up'
+    );
+
+    const targets = response?.data?.result || [];
+
+    if (!targets.length) {
+      root.innerHTML =
+        '<div class="empty">Prometheus returned no monitored targets.</div>';
+      return;
+    }
+
+    root.innerHTML = targets.map(target => {
+      const metric = target.metric || {};
+      const healthy = String(target.value?.[1]) === '1';
+      const service = metric.job || 'Unknown service';
+      const instance = metric.instance || 'Unknown instance';
+
+      return `
+        <div class="incident" style="cursor:default">
+          <div class="incident-title">
+            <span>${esc(service)}</span>
+            <span class="pill ${healthy ? 'low' : 'critical'}">
+              ${healthy ? 'HEALTHY' : 'DOWN'}
+            </span>
+          </div>
+          <div class="incident-meta">
+            Instance: ${esc(instance)} · up = ${esc(target.value?.[1])}
+          </div>
+        </div>`;
+    }).join('');
+  } catch (error) {
+    root.innerHTML =
+      `<div class="empty">Prometheus query failed: ${esc(error.message)}</div>`;
+  }
+}
+
+
+function normaliseList(data) {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.value)) return data.value;
+  if (data && Array.isArray(data.content)) return data.content;
+  return [];
+}
+
+function severityClass(severity) {
+  const s = String(severity || '').toLowerCase();
+  return ['critical','high','medium'].includes(s) ? s : 'low';
+}
+
+function fmtDate(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? value : d.toLocaleString();
+}
+
+function renderStats() {
+  const open = incidents.filter(i =>
+    !['RESOLVED','CLOSED'].includes(String(i.status).toUpperCase()));
+  $('openCount').textContent = open.length;
+  $('highCount').textContent = open.filter(i =>
+    ['HIGH','CRITICAL'].includes(String(i.severity).toUpperCase())).length;
+  $('serviceCount').textContent = services.length;
+  $('aiCount').textContent = aiCount;
+  $('incidentCount').textContent =
+    `${incidents.length} item${incidents.length === 1 ? '' : 's'}`;
+}
+
+function renderList() {
+  const root = $('incidentList');
+  if (!incidents.length) {
+    root.innerHTML = '<div class="empty">No incidents found. Run detection or simulate a demo failure.</div>';
+    return;
+  }
+  root.innerHTML = incidents.slice()
+    .sort((a,b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .map(i => `<button class="incident ${String(i.id) === String(selectedId) ? 'selected' : ''}"
+      data-id="${esc(i.id)}">
+      <div class="incident-title">
+        <span>#${esc(i.id)} · ${esc(i.serviceName)}</span>
+        <span class="pill ${severityClass(i.severity)}">${esc(i.severity || 'UNKNOWN')}</span>
+      </div>
+      <div class="incident-meta">${esc(i.summary || 'Incident')} · ${esc(i.status || 'UNKNOWN')}</div>
+    </button>`).join('');
+  root.querySelectorAll('[data-id]').forEach(button =>
+    button.addEventListener('click', () => selectIncident(button.dataset.id)));
+}
+
+function renderAI(data) {
+  const a = data.analysis || data;
+  const list = (items, tag) => `<${tag} class="factlist">${
+    (Array.isArray(items) ? items : []).map(x => `<li>${esc(x)}</li>`).join('')
+    || '<li>Not provided.</li>'}</${tag}>`;
+  return `<div class="section">
+    <h3>Gemini investigation · ${esc(a.confidence || 'Unspecified')} confidence</h3>
+    <p>${esc(a.incidentSummary || 'Investigation returned no summary.')}</p>
+    <h3>Likely cause</h3><p>${esc(a.likelyCause || 'Not determined from available evidence.')}</p>
+    <h3>Observed facts</h3>${list(a.observedFacts,'ul')}
+    <h3>Reasoning</h3><p>${esc(a.reasoning || '')}</p>
+    <h3>Recommended actions</h3>${list(a.recommendedActions,'ol')}
+    <h3>Verification steps</h3>${list(a.verificationSteps,'ol')}
+    <p class="muted">Human approval required: ${esc(a.requiresHumanApproval ?? true)}</p>
+  </div>`;
+}
+
+function renderDetail() {
+  const incident = incidents.find(i => String(i.id) === String(selectedId));
+  const root = $('detail');
+  $('selectedLabel').textContent = incident ? `Incident #${incident.id}` : 'Select an incident';
+  if (!incident) {
+    root.innerHTML = '<div class="empty">Select an incident from the queue to view its evidence.</div>';
+    return;
+  }
+
+  const ai = investigations[incident.id];
+  root.innerHTML = `
+    <div class="eyebrow">${esc(incident.status)} · ${esc(incident.severity)}</div>
+    <h2 style="margin-top:7px">${esc(incident.summary || 'Incident')}</h2>
+    <p class="muted">${esc(incident.serviceName)} · Created ${esc(fmtDate(incident.createdAt))}</p>
+    <div class="section">
+      <h3>Recorded evidence</h3>
+      <div class="fact">${esc(incident.evidence || 'No evidence recorded.')}</div>
+      <h3>Resolved at</h3>
+      <p>${esc(fmtDate(incident.resolvedAt))}</p>
+    </div>
+    ${ai ? renderAI(ai) : ''}
+    <div class="actions">
+      <button class="primary" id="investigateBtn">✦ ${ai ? 'Re-investigate' : 'Investigate with Gemini'}</button>
+      <button id="refreshIncidentBtn">Refresh data</button>
+    </div>
+    <div class="approval">
+      <strong>Recovery requires human approval</strong>
+      The dashboard's existing recovery endpoint affects only the simulated registry.
+      It does not restart real PetClinic containers.
+    </div>`;
+
+  $('investigateBtn').addEventListener('click', () => investigateIncident(incident.id));
+  $('refreshIncidentBtn').addEventListener('click', loadData);
+}
+
+async function selectIncident(id) {
+  selectedId = String(id);
+  renderList();
+  renderDetail();
+}
+
+async function investigateIncident(id) {
+  const btn = $('investigateBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Investigating…'; }
+  try {
+    const result = await request(`/api/incidents/${encodeURIComponent(id)}/investigate`,
+      {method:'POST'});
+    investigations[id] = result;
+    aiCount++;
+    renderStats();
+    renderDetail();
+    toast('Gemini investigation completed. Review the evidence and recommendations.');
+  } catch (error) {
+    toast('Investigation failed: ' + error.message, true);
+    if (btn) { btn.disabled = false; btn.textContent = 'Retry investigation'; }
+  }
+}
+
+async function simulateFailure() {
+  const btn = $('simulateBtn');
+  btn.disabled = true;
+  try {
+    const body = {
+      serviceName: $('serviceSelect').value,
+      failureType: $('failureSelect').value
+    };
+    const result = await request('/api/simulation/failures', {
+      method:'POST', body:JSON.stringify(body)
+    });
+    await loadData();
+    const id = result?.incident?.id;
+    if (id !== undefined) await selectIncident(id);
+    toast('Simulated incident created.');
+  } catch (error) {
+    toast('Simulation failed: ' + error.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function detectIncidents() {
+  const btn = $('detectBtn');
+  btn.disabled = true;
+  btn.textContent = 'Detecting…';
+  try {
+    const result = await request('/api/incidents/detect', {method:'POST'});
+    await loadData();
+    toast(`Detection complete. New incidents: ${result.createdCount ?? 0}`);
+    if (result.incidents?.length) await selectIncident(result.incidents[0].id);
+  } catch (error) {
+    toast('Detection failed: ' + error.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run real Prometheus detection';
+  }
+}
+
+function addAgentMessage(text, role = 'assistant') {
+  const box = $('agentMessages');
+  const item = document.createElement('div');
+  item.className = `message ${role}`;
+
+  const who = document.createElement('div');
+  who.className = 'who';
+  who.textContent = role === 'user' ? 'You' : 'OpsPilot';
+
+  const body = document.createElement('div');
+  body.className = 'message-body';
+  body.textContent = text;
+
+  item.append(who, body);
+  box.appendChild(item);
+  box.scrollTop = box.scrollHeight;
+}
+
+function formatAgentResult(result, originalMessage) {
+  if (result == null) return 'The service returned no result. Please try again.';
+
+  if (typeof result === 'string') return result;
+
+  const parts = [];
+  const message = String(originalMessage || '').toLowerCase();
+
+  // Prometheus API response: summarize actual returned targets.
+  const data = result.data;
+  if (data && Array.isArray(data.result)) {
+    const targets = data.result;
+    const healthy = targets.filter(t =>
+      String(t.value?.[1]) === '1'
+    ).length;
+    const unhealthy = targets.length - healthy;
+
+    parts.push(`I checked Prometheus. It returned ${targets.length} monitored target(s).`);
+    parts.push(`Healthy: ${healthy}. Unhealthy or unavailable: ${unhealthy}.`);
+
+    targets.forEach(target => {
+      const job = target.metric?.job || 'unknown job';
+      const instance = target.metric?.instance || 'unknown instance';
+      const isUp = String(target.value?.[1]) === '1';
+      parts.push(`${isUp ? 'HEALTHY' : 'UNHEALTHY'} — ${job} (${instance})`);
+    });
+
+    if (unhealthy > 0) {
+      parts.push('Next step: run incident detection and review the evidence before taking action.');
+    } else if (targets.length > 0) {
+      parts.push('All returned targets are reporting healthy in this query. This is a point-in-time check.');
+    }
+
+    return parts.join('\n');
+  }
+
+  // Incident detection response.
+  if ('createdCount' in result || Array.isArray(result.incidents)) {
+    const created = Number(result.createdCount ?? 0);
+    parts.push(`Incident detection completed. New incidents created: ${created}.`);
+
+    if (Array.isArray(result.incidents) && result.incidents.length) {
+      result.incidents.forEach(i => {
+        parts.push(
+          `Incident #${i.id ?? 'unknown'} — ${i.serviceName ?? 'unknown service'}; ` +
+          `severity: ${i.severity ?? 'unspecified'}; status: ${i.status ?? 'unspecified'}.`
+        );
+        if (i.summary) parts.push(`Summary: ${i.summary}`);
+        if (i.evidence) parts.push(`Evidence: ${i.evidence}`);
+      });
+    } else if (created === 0) {
+      parts.push('No new incidents were created by this run. Check the current incident queue for existing incidents.');
+    }
+
+    return parts.join('\n');
+  }
+
+  // Investigation response.
+  if (result.analysis || result.incidentId != null) {
+    const incident = result.incident || {};
+    const analysis = result.analysis;
+    parts.push(`Investigation for incident #${result.incidentId ?? incident.id ?? 'unknown'}`);
+    if (result.serviceName || incident.serviceName) {
+      parts.push(`Service: ${result.serviceName || incident.serviceName}`);
+    }
+    if (incident.severity) parts.push(`Severity: ${incident.severity}`);
+    if (incident.summary) parts.push(`Incident: ${incident.summary}`);
+
+    if (analysis && typeof analysis === 'object' && !Array.isArray(analysis)) {
+      for (const [key, value] of Object.entries(analysis)) {
+        if (value == null || key === 'requiresHumanApproval') continue;
+        const label = key.replace(/([A-Z])/g, ' $1')
+          .replace(/^./, c => c.toUpperCase());
+        const rendered = Array.isArray(value)
+          ? value.map(v => typeof v === 'object' ? JSON.stringify(v) : String(v)).join('; ')
+          : typeof value === 'object' ? JSON.stringify(value, null, 2) : String(value);
+        parts.push(`${label}: ${rendered}`);
+      }
+    } else if (analysis != null) {
+      parts.push(`Analysis: ${String(analysis)}`);
+    }
+
+    parts.push('Safety: recommendations are advisory. Human review is required before remediation.');
+    return parts.join('\n\n');
+  }
+
+  // Generic response, such as a help message.
+  if (result.message) {
+    parts.push(result.message);
+    if (Array.isArray(result.availableActions)) {
+      parts.push('You can ask me to: ' + result.availableActions.join(', ') + '.');
+    }
+    return parts.join('\n');
+  }
+
+  // Fallback: preserve the real backend response rather than inventing an answer.
+  return JSON.stringify(result, null, 2);
+}
+
+async function sendAgentMessage(message) {
+  message = String(message || '').trim();
+  if (!message) return;
+
+  addAgentMessage(message, 'user');
+  $('agentInput').value = '';
+  $('agentSend').disabled = true;
+  $('agentSend').textContent = 'Working…';
+
+  try {
+    const response = await request('/api/agent/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message })
+    });
+
+    addAgentMessage(formatAgentResult(response.result, message));
+
+    const tools = (response.steps || [])
+      .map(s => `${s.tool} (${s.status})`)
+      .join(' → ');
+
+    if (tools) addAgentMessage('Tool activity: ' + tools);
+
+    await loadData(false);
+  } catch (error) {
+    addAgentMessage('I could not complete that request: ' + error.message);
+  } finally {
+    $('agentSend').disabled = false;
+    $('agentSend').textContent = 'Ask OpsPilot';
+    $('agentInput').focus();
+  }
+}async function loadData(showError = true) {
+  try {
+    const [incidentData, serviceData] = await Promise.all([
+      request('/api/incidents'),
+      request('/api/services')
+    ]);
+    incidents = normaliseList(incidentData);
+    services = normaliseList(serviceData);
+    $('healthText').textContent = 'Backend connected';
+    $('serviceSelect').innerHTML = `
+        <option value="api-gateway">api-gateway</option>
+        <option value="customers-service">customers-service</option>
+        <option value="visits-service">visits-service</option>
+        <option value="vets-service">vets-service</option> 
+        `;
+
+    if (!incidents.some(i => String(i.id) === String(selectedId))) {
+      selectedId = incidents.length ? String(incidents[0].id) : null;
+    }
+    renderStats();
+    renderList();
+    renderDetail();
+  } catch (error) {
+    $('healthText').textContent = 'Backend unavailable';
+    if (showError) toast('Could not load dashboard: ' + error.message, true);
+  }
+}
+
+$('agentForm').addEventListener('submit', event => {
+  event.preventDefault();
+  sendAgentMessage($('agentInput').value);
+});
+document.querySelectorAll('[data-agent-prompt]').forEach(button =>
+  button.addEventListener('click', () => sendAgentMessage(button.dataset.agentPrompt)));
+$('refreshBtn').addEventListener('click', () => loadData());
+$('simulateBtn').addEventListener('click', simulateFailure);
+$('detectBtn').addEventListener('click', detectIncidents);
+
+loadData();
+$('refreshTargetsBtn').addEventListener(
+  'click', loadPrometheusTargets
+);
+loadPrometheusTargets();
+</script>
+</body>
+</html>
+
+

@@ -1,0 +1,47 @@
+﻿@'
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Java and Maven
+**/target/
+*.class
+
+# Python
+**/.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+
+# IDE and OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Open-source testing workload — keep local, don't commit
+/spring-petclinic-microservices/
+'@ | Set-Content -Path .gitignore -Encoding UTF8
+# Local backup files
+*.bak
+*.bak2
+*.before-alexa-simulation.bak
+
+# Backup files
+*.bak
+*.bak2
+*.pre-sre-*.bak
+
+# Local test and patch scripts; review before intentionally adding
+/opspilot_smoke_test.py
+/patch_opspilot.py
+
+# Gemini test data may contain credentials or private payloads
+/backend/gemini-test.json
